@@ -62,47 +62,6 @@ var constants = require('./constants');
 }
 
 */
-function shouldPlayJingle(userId) {
-
-    return new Promise( (resolve, reject) => {
-
-        var WILL_PLAY_JINGLE = false;
-
-        ddb.getFromDDB(userId).then((data) => {
-
-            let lastPlayedEPOCH = (data && data.Item) ? data.Item.lastPlayed : 0;
-            let now = Math.round(new Date() / 1000);
-
-            // When last played is more that playOnceEvery ago, agree to play the jingle
-            WILL_PLAY_JINGLE = (lastPlayedEPOCH === 0) || (lastPlayedEPOCH + constants.jingle.playOnceEvery < now);
-            // console.log("lastPlayedEPOCH : " + lastPlayedEPOCH);
-            // console.log("playOnceEvery   : " + constants.jingle.playOnceEvery);
-            // console.log("now             : " + now);
-            // console.log("last + every    : " + (lastPlayedEPOCH + constants.jingle.playOnceEvery));
-            // console.log("WILL PLAY       : " + WILL_PLAY_JINGLE);
-
-            if (WILL_PLAY_JINGLE) {
-
-                // update the DB
-                // console.log("We will play the jingle, let's update the DB to remember that");
-                ddb.insertOrUpdateDDB(userId).then(data => {
-                    resolve(WILL_PLAY_JINGLE);
-                }).catch(error => {
-                    resolve(WILL_PLAY_JINGLE);
-                });
-
-            } else {
-                resolve(WILL_PLAY_JINGLE);
-            };
-
-        }).catch((error) => {
-            console.log(`Error while reading data from the DB ${error} - will play jingle in any case`);
-            WILL_PLAY_JINGLE = true;
-            resolve(WILL_PLAY_JINGLE);
-        });
-    });
-}
-
 var intentHandlers = {
     'LaunchRequest': function () {
         this.emit('PlayAudio');
@@ -111,17 +70,16 @@ var intentHandlers = {
 
         let request = this.event.request;
 
-        //is the jingke URL defined ?
+        console.log('これがリクエスト!', request);
+
+        //is the jingle URL defined ?
         if (audioData(request).startJingle) {
 
-            //should we play the jingle ?
-            shouldPlayJingle(this.event.session.user.userId).then(shouldPlayJingleResult => {
-                // play a jingle first, then the live stream or play the live stream
-                // depending on return value from shouldPlayJingle()
-                // (live stream will be started when we will receive Playback Nearly Finished event)
-                controller.play.call(this,
-                                     this.t('WELCOME_MSG', {skillName: audioData(request).card.title}), shouldPlayJingleResult ? audioData(request).startJingle : audioData(request).url, audioData(request).card);
-            });
+                controller.play.call(
+                    this,
+                    this.t('WELCOME_MSG', {skillName: audioData(request).card.title}),
+                    audioData(request).url, audioData(request).card
+                );
 
         } else {
 

@@ -1,0 +1,26 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "audio player",
+      "intents": [
+        {
+          "name": "AMAZON.PauseIntent"
+        },
+        {
+          "name": "AMAZON.ResumeIntent"
+        },
+        {
+          "name": "AMAZON.StartOverIntent"
+        },
+        {
+          "name": "PlayAudio",
+          "samples": [
+            "音楽をかけて",
+            "音楽を流して",
+            "音楽を再生して"
+          ]
+        }
+      ]
+    }
+  }
+}
